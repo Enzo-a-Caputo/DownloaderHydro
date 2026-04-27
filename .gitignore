@@ -1,0 +1,10 @@
+# Projetos externos (mantidos locais como backup, não fazem parte do webapp)
+Swagger-ANA-main/
+delineator-main/
+
+# Memória do Claude Code
+.claude/
+
+# Misc
+.DS_Store
+*.swp

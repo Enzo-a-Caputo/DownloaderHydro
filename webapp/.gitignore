@@ -1,0 +1,25 @@
+# ─── Dados MERIT-Hydro (dezenas de GB, download manual via prepare_merit_sa.md) ─
+data/
+
+# ─── Backend ─────────────────────────────────────────────────────────────────
+backend/.env
+backend/storage/pickles/
+backend/storage/jobs.db
+backend/storage/jobs_meta/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/*.egg-info/
+backend/.venv/
+backend/dist/
+backend/build/
+
+# ─── Frontend ────────────────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ─── Misc ────────────────────────────────────────────────────────────────────
+.DS_Store
+*.swp
+*.swo
+Thumbs.db

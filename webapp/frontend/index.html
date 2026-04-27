@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DownloaderHydro</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>DownloaderHydro</h1>
+      <div id="status">Clique no mapa para delinear uma bacia.</div>
+    </header>
+    <main>
+      <div id="map"></div>
+      <aside id="sidebar">
+        <section id="watershed-info">
+          <h2>Bacia</h2>
+          <p class="muted">Nenhuma bacia delineada ainda.</p>
+        </section>
+        <section id="stations-section">
+          <h2>Estações</h2>
+          <p class="muted">—</p>
+        </section>
+        <section id="jobs-section">
+          <h2>Downloads</h2>
+          <p class="muted">—</p>
+        </section>
+      </aside>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
