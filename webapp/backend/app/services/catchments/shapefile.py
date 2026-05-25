@@ -1,7 +1,8 @@
 """Implementação shapefile + pickle do CatchmentStore.
 
-Reaproveita a lógica do delineator-main/delineate.py (load_gdf + pickle cache),
-mas evita o `from config import *` global do script original.
+Espelha a lógica do `load_gdf` + cache de pickle do delineator original
+(Matthew Heberger, mghydro), com a leitura de paths feita por `app.settings`
+em vez de globals do `config.py`.
 """
 from __future__ import annotations
 

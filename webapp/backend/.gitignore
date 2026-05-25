@@ -4,7 +4,9 @@ __pycache__/
 .env
 storage/pickles/
 storage/jobs.db*
+storage/jobs_meta/
 storage/outputs/
+storage/*.gpkg
 .pytest_cache/
 .ruff_cache/
 *.egg-info/

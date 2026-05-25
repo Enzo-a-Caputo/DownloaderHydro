@@ -5,9 +5,14 @@
   --fg: #e6e9ef;
   --muted: #8891a2;
   --accent: #4f8cff;
+  --plu: #3fb950;
+  --flu: #f85149;
 }
 
 * { box-sizing: border-box; }
+
+/* garante que [hidden] não é sobrescrito por display explícito no CSS */
+[hidden] { display: none !important; }
 
 html, body {
   margin: 0;
@@ -17,25 +22,46 @@ html, body {
   color: var(--fg);
 }
 
-body {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
+body { display: flex; flex-direction: column; height: 100vh; }
 
+/* ── Header ── */
 header {
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 1rem;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
   background: var(--panel);
+  flex-wrap: wrap;
 }
 
-header h1 { font-size: 1.1rem; margin: 0; }
+header h1 { font-size: 1rem; margin: 0; white-space: nowrap; }
 
-#status { color: var(--muted); font-size: 0.9rem; }
+#status { color: var(--muted); font-size: 0.85rem; flex: 1; min-width: 120px; }
 
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.header-filters { gap: 0.6rem; }
+.label-group { color: var(--muted); }
+
+select {
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+select:focus { outline: 1px solid var(--accent); }
+
+/* ── Layout ── */
 main {
   flex: 1;
   display: grid;
@@ -48,46 +74,241 @@ main {
 #sidebar {
   border-left: 1px solid var(--border);
   overflow-y: auto;
-  padding: 1rem;
   background: var(--panel);
 }
 
+#sidebar section { padding: 0.75rem 1rem 1rem; border-bottom: 1px solid var(--border); }
+
 #sidebar h2 {
-  font-size: 0.95rem;
+  font-size: 0.82rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--muted);
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 0.25rem;
-  margin: 0.5rem 0 0.75rem;
+  margin: 0 0 0.6rem;
 }
 
-#sidebar section { margin-bottom: 1.5rem; }
-.muted { color: var(--muted); font-size: 0.9rem; }
+.muted { color: var(--muted); font-size: 0.85rem; }
 
+/* ── Buttons ── */
 button {
   background: var(--accent);
   color: white;
   border: none;
-  padding: 0.35rem 0.75rem;
+  padding: 0.28rem 0.65rem;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 button:hover { opacity: 0.9; }
-button:disabled { opacity: 0.5; cursor: not-allowed; }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
 
-.station-row {
+button.station-toggle {
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.78rem;
+  padding: 0.1rem 0.3rem;
+}
+
+/* ── Station filters (sidebar) ── */
+.station-filters {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.25rem 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.85rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.8rem;
 }
 
-.job-row {
-  font-size: 0.85rem;
-  padding: 0.4rem 0;
-  border-bottom: 1px solid var(--border);
+.station-filters label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+  color: var(--muted);
 }
+
+/* ── Station card ── */
+.station-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.station-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.82rem;
+  border-left-width: 3px;
+}
+.station-card.plu { border-left-color: var(--plu); }
+.station-card.flu { border-left-color: var(--flu); }
+
+.station-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.station-name { color: var(--muted); font-size: 0.78rem; flex: 1; }
+
+.badge-ativa {
+  font-size: 0.7rem;
+  background: #1a3a1f;
+  color: var(--plu);
+  border-radius: 3px;
+  padding: 0.1rem 0.35rem;
+}
+
+.station-meta { color: var(--muted); font-size: 0.75rem; margin: 0.2rem 0; }
+
+.station-actions { display: flex; gap: 0.4rem; margin-top: 0.35rem; }
+
+/* Tabela de detalhes da estação */
+.station-details { margin-top: 0.5rem; overflow-x: auto; }
+
+.props-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+.props-table td { padding: 0.15rem 0.3rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+.props-table td.pk { color: var(--muted); white-space: nowrap; width: 50%; }
+
+/* ── Popup da estação (no mapa) ── */
+.station-popup { max-height: 380px; overflow-y: auto; font-size: 0.78rem; }
+.station-popup table { border-collapse: collapse; width: 100%; }
+.station-popup td { padding: 0.12rem 0.25rem; border-bottom: 1px solid #ddd; vertical-align: top; }
+.station-popup td.pk { color: #666; white-space: nowrap; }
+
+/* Leaflet popup sem padding excessivo */
+.leaflet-popup-content { margin: 8px 12px; }
+
+/* ── Indicador de cor (bolinha) ── */
+.dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot.plu { background: var(--plu); }
+.dot.flu { background: var(--flu); }
+
+/* ── Login overlay ── */
+#login-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+#login-overlay.hidden { display: none; }
+
+.login-box {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 2rem 2.5rem;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.login-box h2 { margin: 0 0 0.2rem; font-size: 1.1rem; }
+.login-subtitle { color: var(--muted); font-size: 0.82rem; margin: 0 0 0.6rem; }
+.login-box label { font-size: 0.82rem; color: var(--muted); }
+
+.login-box input {
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.88rem;
+  width: 100%;
+}
+.login-box input:focus { outline: 1px solid var(--accent); }
+.login-box button[type="submit"] { margin-top: 0.4rem; padding: 0.45rem; font-size: 0.88rem; width: 100%; }
+.login-error { color: var(--flu); font-size: 0.8rem; margin: 0; }
+.login-hint { font-size: 0.75rem; color: var(--muted); text-align: center; margin: 0.4rem 0 0; }
+.login-hint a { color: var(--accent); text-decoration: none; }
+
+/* ── Filter dropdown panel ── */
+.filter-btn-wrap { position: relative; }
+
+.filter-toggle-btn {
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+}
+.filter-toggle-btn:hover { border-color: var(--accent); opacity: 1; }
+
+.filter-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem;
+  z-index: 1000;
+  min-width: 210px;
+  box-shadow: 0 4px 16px #0009;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.filter-section { display: flex; flex-direction: column; gap: 0.3rem; }
+
+.filter-section-title {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 0.1rem;
+}
+
+.filter-section label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--fg);
+}
+
+/* ── Download kind menu ── */
+.download-menu {
+  position: fixed;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.3rem;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  box-shadow: 0 4px 16px #0009;
+  min-width: 190px;
+}
+
+.dl-kind-btn {
+  background: transparent !important;
+  color: var(--fg) !important;
+  text-align: left;
+  padding: 0.32rem 0.6rem !important;
+  font-size: 0.82rem;
+  border-radius: 4px;
+}
+.dl-kind-btn:hover { background: var(--accent) !important; color: #fff !important; opacity: 1; }
+.dl-empty { padding: 0.35rem 0.6rem; font-size: 0.8rem; color: var(--muted); }
+
+/* ── Leaflet layer control ── */
+.leaflet-control-layers {
+  background: var(--panel) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 6px !important;
+  color: var(--fg) !important;
+  font-size: 0.82rem !important;
+  box-shadow: 0 2px 8px #0006 !important;
+}
+.leaflet-control-layers-expanded { padding: 0.5rem 0.75rem !important; }
+.leaflet-control-layers label { display: flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0; }
+.leaflet-control-layers-separator { border-top: 1px solid var(--border) !important; margin: 0.25rem 0 !important; }

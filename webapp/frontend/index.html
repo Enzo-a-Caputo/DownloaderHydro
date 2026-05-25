@@ -8,10 +8,81 @@
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
+    <!-- Overlay de login — visível enquanto não autenticado -->
+    <div id="login-overlay">
+      <div class="login-box">
+        <h2>DownloaderHydro</h2>
+        <p class="login-subtitle">Entre com suas credenciais da ANA (Hidro Webservice)</p>
+        <form id="login-form" autocomplete="on">
+          <label for="login-id">Identificador</label>
+          <input id="login-id" name="identificador" type="text" placeholder="CPF/CNPJ" autocomplete="username" required />
+          <label for="login-pw">Senha</label>
+          <input id="login-pw" name="senha" type="password" placeholder="••••••••" autocomplete="current-password" required />
+          <p id="login-error" class="login-error" hidden></p>
+          <button type="submit" id="login-btn">Entrar</button>
+        </form>
+        <p class="login-hint">Sem conta? Cadastre-se em <a href="https://www.ana.gov.br" target="_blank">ana.gov.br</a></p>
+      </div>
+    </div>
+
     <header>
       <h1>DownloaderHydro</h1>
-      <div id="status">Clique no mapa para delinear uma bacia.</div>
+
+      <div class="header-controls">
+        <label for="precision">Precisão</label>
+        <select id="precision">
+          <option value="auto">Auto</option>
+          <option value="high">Alta (high-res)</option>
+          <option value="low">Baixa (low-res)</option>
+        </select>
+      </div>
+
+      <div class="header-controls">
+        <label for="snap-sensitivity">Sensibilidade</label>
+        <select id="snap-sensitivity">
+          <option value="auto">Auto (rios grandes)</option>
+          <option value="medium">Média (rios médios)</option>
+          <option value="small">Pequena (vales, fazendas)</option>
+          <option value="micro">Micro (sulcos, mineração)</option>
+        </select>
+      </div>
+
+      <div class="header-controls filter-btn-wrap">
+        <button id="filter-btn" class="filter-toggle-btn">Filtros ▾</button>
+        <div id="filter-panel" class="filter-panel" hidden>
+          <div class="filter-section">
+            <div class="filter-section-title">Tipo</div>
+            <label><input type="checkbox" id="filter-plu" checked> <span class="dot plu"></span> Pluviométrica</label>
+            <label><input type="checkbox" id="filter-flu" checked> <span class="dot flu"></span> Fluviométrica</label>
+          </div>
+          <div class="filter-section">
+            <div class="filter-section-title">Dados disponíveis (AND)</div>
+            <label><input type="checkbox" class="filter-dtype" data-col="Tipo_Estacao_Telemetrica"> Telemétrica</label>
+            <label><input type="checkbox" class="filter-dtype" data-col="Tipo_Estacao_Qual_Agua"> Qual. da Água</label>
+            <label><input type="checkbox" class="filter-dtype" data-col="Tipo_Estacao_Desc_Liquida"> Desc. Líquida</label>
+            <label><input type="checkbox" class="filter-dtype" data-col="Tipo_Estacao_Sedimentos"> Sedimentos</label>
+            <label><input type="checkbox" class="filter-dtype" data-col="Tipo_Estacao_Registrador_Chuva"> Reg. Chuva</label>
+            <label><input type="checkbox" class="filter-dtype" data-col="Tipo_Estacao_Registrador_Nivel"> Reg. Nível</label>
+            <label><input type="checkbox" class="filter-dtype" data-col="Tipo_Estacao_Escala"> Escala</label>
+            <label><input type="checkbox" class="filter-dtype" data-col="Tipo_Estacao_Piezometria"> Piezometria</label>
+            <label><input type="checkbox" class="filter-dtype" data-col="Tipo_Estacao_Climatologica"> Climatológica</label>
+            <label><input type="checkbox" class="filter-dtype" data-col="Tipo_Estacao_Tanque_evapo"> Tanque Evapo.</label>
+          </div>
+          <div class="filter-section">
+            <div class="filter-section-title">Status</div>
+            <label><input type="checkbox" id="filter-ativa"> Só em operação</label>
+          </div>
+        </div>
+      </div>
+
+      <div id="status">Carregando…</div>
+
+      <div class="header-controls" id="auth-info" hidden>
+        <span id="auth-user" class="muted"></span>
+        <button id="logout-btn" style="background:transparent;color:var(--muted);font-size:0.78rem;padding:0.1rem 0.3rem;">Sair</button>
+      </div>
     </header>
+
     <main>
       <div id="map"></div>
       <aside id="sidebar">
@@ -20,7 +91,7 @@
           <p class="muted">Nenhuma bacia delineada ainda.</p>
         </section>
         <section id="stations-section">
-          <h2>Estações</h2>
+          <h2>Estações na bacia</h2>
           <p class="muted">—</p>
         </section>
         <section id="jobs-section">

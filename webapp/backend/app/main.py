@@ -5,22 +5,20 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.sessions import SessionMiddleware
 
 from app import vendor
-vendor.install()           # precisa vir antes de qualquer import do delineator/Swagger-ANA
-vendor.configure_delineator()  # injeta nossos paths nos globals do config.py do delineator
+vendor.install()  # adiciona Swagger-ANA-main/ ao sys.path antes dos routers importarem
 
-from app.routers import delineate, stations, downloads, jobs
+from app.routers import auth, delineate, stations, downloads, jobs
 from app.settings import settings
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Garante que o configure rodou (ex.: testes que importam main fora do uvicorn)
-    vendor.configure_delineator()
-
     # Pré-carregar GDFs das bacias configuradas em PRELOAD_BASINS
     from app.services.catchments.shapefile import ShapefileStore
     store = ShapefileStore()
@@ -43,6 +41,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
@@ -50,11 +49,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# SessionMiddleware deve vir depois do CORS (será aplicado antes dele no pipeline)
+app.add_middleware(SessionMiddleware, secret_key=settings.secret_key, https_only=False)
 
+app.include_router(auth.router,      prefix="/api")
 app.include_router(delineate.router, prefix="/api")
-app.include_router(stations.router, prefix="/api")
+app.include_router(stations.router,  prefix="/api")
 app.include_router(downloads.router, prefix="/api")
-app.include_router(jobs.router, prefix="/api")
+app.include_router(jobs.router,      prefix="/api")
 
 
 @app.get("/api/health")

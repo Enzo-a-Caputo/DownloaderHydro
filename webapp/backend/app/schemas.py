@@ -13,12 +13,29 @@ class Precision(str, Enum):
     auto = "auto"
 
 
+class SnapSensitivity(str, Enum):
+    auto   = "auto"    # threshold_multiple do .env (default 5000 px ≈ grandes rios)
+    medium = "medium"  # 500 px ≈ rios médios / cabeceiras com bom acúmulo
+    small  = "small"   # 100 px ≈ pequenas bacias, vales, fazendas
+    micro  = "micro"   # 30 px ≈ drenos mínimos (sulcos, áreas de mineração)
+
+
+# Pixels 3-arcsec → área aprox. (equador): 1 px ≈ 0,0083 km²
+_SNAP_THRESHOLDS: dict[str, int] = {
+    "auto":   -1,   # usa threshold_multiple do settings (configurável no .env)
+    "medium": 500,
+    "small":  100,
+    "micro":  30,
+}
+
+
 class DelineateRequest(BaseModel):
     lat: float = Field(ge=-60, le=85)
     lng: float = Field(ge=-180, le=180)
     precision: Precision = Precision.auto
     simplify: bool = False
     fill: bool = True
+    snap_sensitivity: SnapSensitivity = SnapSensitivity.auto
 
 
 class DelineateResponse(BaseModel):
@@ -38,10 +55,11 @@ class StationsRequest(BaseModel):
 
 class Station(BaseModel):
     codigo: str
-    tipo: Literal["Pluviométrica", "Fluviométrica"]
+    tipo: str
     lat: float
     lng: float
     nome: str | None = None
+    props: dict[str, Any] = {}   # todos os campos do inventário
 
 
 class StationsResponse(BaseModel):
@@ -58,7 +76,7 @@ class DownloadKind(str, Enum):
     qa = "qa"
     resumo_descarga = "resumo_descarga"
     sedimentos = "sedimentos"
-    dados = "dados"
+    granulometria = "granulometria"
     telemetrica_detalhada = "telemetrica_detalhada"
     telemetrica_adotada = "telemetrica_adotada"
 

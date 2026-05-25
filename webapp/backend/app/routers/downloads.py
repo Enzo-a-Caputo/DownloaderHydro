@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 
 from app.schemas import DownloadRequest
 from app.services import jobs
@@ -12,13 +12,15 @@ router = APIRouter(tags=["downloads"])
 
 
 @router.post("/downloads")
-async def post_download(req: DownloadRequest) -> dict:
-    identificador = req.identificador or settings.ana_identificador
-    senha = req.senha or settings.ana_senha
+async def post_download(req: DownloadRequest, request: Request) -> dict:
+    # Prioridade: sessão > corpo do request > .env
+    identificador = request.session.get("identificador") or req.identificador or settings.ana_identificador
+    senha         = request.session.get("senha")         or req.senha         or settings.ana_senha
+
     if not identificador or not senha:
         raise HTTPException(
-            status_code=400,
-            detail="Credenciais ANA ausentes. Informe no request ou no .env do servidor.",
+            status_code=401,
+            detail="Credenciais ANA ausentes. Faça login primeiro.",
         )
 
     job_id = uuid.uuid4().hex

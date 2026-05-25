@@ -1,10 +1,15 @@
 """Delineação de bacia para um único ponto — função pura, sem efeitos colaterais.
 
-Derivada de `delineator-main/delineate.py::delineate()`, mas:
-- recebe (lat, lng) em vez de ler CSV
+Derivada do `delineate.py` original do delineator (Matthew Heberger), mas:
+- recebe (lat, lng) em vez de ler CSV de outlets
 - retorna dicts GeoJSON em vez de gravar arquivos
-- não usa `from config import *` — lê de `app.settings`
-- reaproveita `py.fast_dissolve` e `py.merit_detailed` do delineator original (via vendor)
+- todas as configs vêm de `app.settings` (sem `from config import *`)
+- usa `app.lib.delineator.merit_detailed.split_catchment` (código migrado
+  para dentro do backend, sem sys.path tricks)
+- substituiu `dissolve_geopandas` (clip+buffer, quebrado em geopandas/shapely
+  modernos para bacias grandes) por `shapely.ops.unary_union` direto
+- reimplementa `close_holes` localmente (`_close_holes`) com suporte a
+  Shapely 2.x (o original iterava `MultiPolygon` direto, removido em Shapely 2)
 """
 from __future__ import annotations
 
@@ -43,11 +48,11 @@ def _area_km2(poly) -> float:
 
 
 def _close_holes(poly, area_max: float):
-    """Reimplementação compatível com Shapely 2.x do `close_holes` do delineator.
+    """Versão compatível com Shapely 2.x do `close_holes` do delineator original.
 
-    O original em `py/fast_dissolve.py` usa `for sub_poly in poly:` em MultiPolygon,
-    padrão removido em Shapely 2.0 (usar `.geoms`). Mantemos `delineator-main/`
-    intocado e replicamos a lógica aqui.
+    O `py/fast_dissolve.py::close_holes` original itera `for sub_poly in poly`
+    sobre MultiPolygon — padrão removido em Shapely 2.0 (precisa ser `.geoms`).
+    Não vale a pena absorver o módulo inteiro só por isso, então a função vive aqui.
     """
     if isinstance(poly, Polygon):
         if area_max == 0:
@@ -112,6 +117,7 @@ def delineate_point(
     simplify_tol: float = 0.0008,
     fill: bool = True,
     fill_threshold_px: int = 100,
+    snap_threshold: int = -1,   # -1 → usa threshold_multiple do settings
     include_rivers: bool = True,
     num_stream_orders: int = 3,
 ) -> DelineationResult:
@@ -186,11 +192,26 @@ def delineate_point(
     lat_snap: float
     lng_snap: float
     if mode == "high":
-        # import tardio: só carrega pysheds se realmente for usar
-        import py.merit_detailed as merit_detailed  # noqa  (from vendor)
+        # import tardio: só carrega pysheds (e matplotlib) se realmente for usar
+        from app.lib.delineator import merit_detailed
         catchment_poly = subbasins.loc[terminal_comid].geometry
+        # snap_threshold=-1 usa o default do settings; qualquer outro valor
+        # sobrescreve tanto o single quanto o multiple (sensibilidade do usuário)
+        if snap_threshold < 0:
+            thr_single   = settings.threshold_single
+            thr_multiple = settings.threshold_multiple
+        else:
+            thr_single = thr_multiple = snap_threshold
+
         split_poly, lat_snap, lng_snap = merit_detailed.split_catchment(
-            "api", basin, lat, lng, catchment_poly, len(comids) == 1
+            "api", basin, lat, lng, catchment_poly, len(comids) == 1,
+            merit_fdir_dir=str(settings.flowdir_dir),
+            merit_accum_dir=str(settings.accum_dir),
+            threshold_single=thr_single,
+            threshold_multiple=thr_multiple,
+            snap=True,   # sempre snap; o threshold controla a sensibilidade
+            verbose=False,
+            plots=False,
         )
         if split_poly is None:
             raise RuntimeError("Erro na divisão raster do catchment terminal (pysheds).")

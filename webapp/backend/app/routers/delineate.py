@@ -4,7 +4,7 @@ import traceback
 
 from fastapi import APIRouter, HTTPException, Request
 
-from app.schemas import DelineateRequest, DelineateResponse, Precision
+from app.schemas import DelineateRequest, DelineateResponse, Precision, _SNAP_THRESHOLDS
 from app.services.delineate import delineate_point
 
 router = APIRouter(tags=["delineate"])
@@ -13,12 +13,14 @@ router = APIRouter(tags=["delineate"])
 @router.post("/delineate", response_model=DelineateResponse)
 async def post_delineate(req: DelineateRequest, request: Request) -> DelineateResponse:
     store = request.app.state.catchment_store
+    snap_threshold = _SNAP_THRESHOLDS[req.snap_sensitivity.value]
     try:
         result = delineate_point(
             req.lat, req.lng, store,
             precision=req.precision.value if isinstance(req.precision, Precision) else req.precision,
             simplify=req.simplify,
             fill=req.fill,
+            snap_threshold=snap_threshold,
         )
     except FileNotFoundError as e:
         raise HTTPException(status_code=503, detail=f"Dados MERIT ausentes: {e}")

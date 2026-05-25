@@ -24,9 +24,10 @@ webapp/data/
 
 `<NN>` = código Pfafstetter nível 2. **América do Sul = 61, 62, 63, 64, 65, 66, 67**.
 
-> **Atenção à nomenclatura dos rasters**: o delineator monta o caminho como
-> `"{flowdir_dir}/flowdir{basin}.tif"`. Os arquivos baixados em mghydro.com já
-> vêm nesse formato — basta colocar na pasta certa, não renomear.
+> **Atenção à nomenclatura dos rasters**: o backend monta o caminho como
+> `"{flowdir_dir}/flowdir{basin}.tif"` (ver `app/lib/delineator/merit_detailed.py`).
+> Os arquivos baixados em mghydro.com já vêm nesse formato — basta colocar na
+> pasta certa, não renomear.
 
 > **Atenção aos shapefiles `cat_pfaf_*`**: o ZIP que você baixa em reachhydro.org
 > vem com sufixo `_bugfix1` (ex.: `cat_pfaf_61_MERIT_Hydro_v07_Basins_v01_bugfix1.shp`).
@@ -44,16 +45,15 @@ ou simplesmente confira:
 | `shp/merit_catchments/cat_pfaf_<NN>...` | ✓ se você seguiu o passo 3 |
 | `shp/catchments_simplified/cat_pfaf_<NN>...` | ✓ se você seguiu o passo 4 |
 | `shp/rivers/riv_pfaf_<NN>...`           | **necessário, ainda não baixado** |
-| `shp/basins_level2/merit_hydro_vect_level2.shp` | ✓ vem com o delineator |
+| `shp/basins_level2/merit_hydro_vect_level2.shp` | ✓ se você seguiu o passo 1 |
 
 ## Passo 1 — Megabacias nível 2 (pequeno, sempre obrigatório)
 
-Já vem com o delineator original. Copiar:
+Arquivo pequeno (~5 MB), cobre o mundo todo. Fonte:
+https://github.com/mheberger/delineator/tree/main/data/shp/basins_level2
 
-```bash
-cp ../../delineator-main/data/shp/basins_level2/merit_hydro_vect_level2.* \
-   ../data/shp/basins_level2/
-```
+Baixar os 4 arquivos (`.shp`, `.shx`, `.dbf`, `.prj`) e jogar em
+`webapp/data/shp/basins_level2/`.
 
 ## Passo 2 — Identificar bacias
 
@@ -105,8 +105,11 @@ Se os arquivos vierem com sufixo `_bugfix1`, repita a remoção do passo 3.
 
 ```bash
 cd webapp/backend
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload --reload-dir app
 ```
 
 No primeiro request de uma bacia, o sistema lê o shapefile, gera um pickle em
 `$PICKLE_DIR` e cacheia em RAM. Próximos requests da mesma bacia são ~instantâneos.
+
+Se preferir pré-carregar tudo no boot (mais lento mas elimina latência depois),
+defina `PRELOAD_BASINS=61,62,63,64,65,66,67` no `.env`.

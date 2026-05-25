@@ -18,6 +18,9 @@ from typing import Any
 
 from huey import SqliteHuey
 
+from app import vendor
+vendor.install()  # worker não passa pelo main.py — garante que Swagger-ANA-main/ está no sys.path
+
 from app.settings import settings
 
 # Criado fora do consumer: SqliteHuey inicializa conexão preguiçosa.
